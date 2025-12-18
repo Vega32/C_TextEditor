@@ -9,6 +9,8 @@
 #define CTRL_KEY(k) ((k) & 0x1f)
 
 struct termios orig_termios;
+int x = 0;
+int y = 0;
 
 /*** terminal ***/
 void die(const char *s)
@@ -66,6 +68,15 @@ char editorReadKey()
     return c;
 }
 
+/*** output ***/
+void editorRefreshScreen()
+{
+    write(STDOUT_FILENO, "\x1b[2J", 4);
+    char s[32];
+    int len = snprintf(s, sizeof(s), "\x1b[%d;%dH", y, x);
+    write(STDOUT_FILENO, s, len);
+}
+
 /*** input ***/
 void editorProcessKeypress()
 {
@@ -75,6 +86,18 @@ void editorProcessKeypress()
     case CTRL_KEY('q'):
         exit(0);
         break;
+    case 'a':
+        x -= 1;
+        break;
+    case 'd':
+        x += 1;
+        break;
+    case 'w':
+        y -= 1;
+        break;
+    case 's':
+        y += 1;
+        break;
     }
 }
 
@@ -83,6 +106,7 @@ int main()
     enableRawMode();
     while (1)
     {
+        editorRefreshScreen();
         editorProcessKeypress();
     }
     return 0;
